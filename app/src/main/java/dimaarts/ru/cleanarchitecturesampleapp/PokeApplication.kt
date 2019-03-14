@@ -15,7 +15,7 @@ class PokeApplication: DaggerApplication() {
     }
 
     override fun applicationInjector(): AndroidInjector<out DaggerApplication> {
-        return DaggerAppComponent.builder().apiClientModule(ApiClientModule()).appModule(
+        return DaggerAppComponent.builder().appModule(
             AppModule(
                 this
             )

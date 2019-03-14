@@ -9,8 +9,8 @@ data class Pokemon (
     @NonNull
     @PrimaryKey
     val id: Int,
-    val name: String,
-    val height: Int,
+    val name: String?,
+    val height: Int?,
     val backDefault: String?,
     val backFemale: String?,
     val backShiny: String?,

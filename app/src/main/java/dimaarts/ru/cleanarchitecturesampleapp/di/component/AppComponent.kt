@@ -10,9 +10,10 @@ import dimaarts.ru.cleanarchitecturesampleapp.di.module.AppModule
 import dimaarts.ru.cleanarchitecturesampleapp.di.module.UIModule
 import dimaarts.ru.data.net.api.di.ApiClientModule
 import dimaarts.ru.data.net.api.di.PicassoModule
+import dimaarts.ru.data.repository.di.RepositoryModule
 import javax.inject.Singleton
 
-@Component(modules = [ApiClientModule::class, AndroidSupportInjectionModule::class, AppModule::class, PicassoModule::class, UIModule::class])
+@Component(modules = [AndroidSupportInjectionModule::class, AppModule::class, ApiClientModule::class, RepositoryModule::class, PicassoModule::class, UIModule::class])
 @Singleton
 interface AppComponent : AndroidInjector<PokeApplication> {
     fun inject(application: Application)

@@ -53,13 +53,11 @@ class MainFragment: MvpAppCompatFragment(), MainView {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val app = activity?.application as PokeApplication
         val view = inflater.inflate(R.layout.fragment_main, container, false)
         val searchEditText = view.searchEditText
         view.searchButton.setOnClickListener {
             presenter.searchPokemon(searchEditText.text.toString())
         }
-        //adapter = PokemonAdapter()
         view.pokeRecyclerView.defaultSettings()
         view.pokeRecyclerView.adapter = adapter
         return view

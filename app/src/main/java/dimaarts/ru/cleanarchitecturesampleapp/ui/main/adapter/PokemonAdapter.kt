@@ -8,13 +8,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import dimaarts.ru.cleanarchitecturesampleapp.R
-import dimaarts.ru.cleanarchitecturesampleapp.di.scope.PerActivity
-import dimaarts.ru.cleanarchitecturesampleapp.di.scope.PerFragment
+import dimaarts.ru.cleanarchitecturesampleapp.di.scope.FragmentScope
 import dimaarts.ru.data.entity.pokemondetails.PokemonEntity
 import kotlinx.android.synthetic.main.item_pokemon_info.view.*
 import javax.inject.Inject
 
-@PerFragment
+@FragmentScope
 class PokemonAdapter(private var items: ArrayList<PokemonEntity>): RecyclerView.Adapter<PokemonAdapter.MyViewHolder>() {
     @Inject
     lateinit var picasso: Picasso
@@ -55,9 +54,11 @@ class PokemonAdapter(private var items: ArrayList<PokemonEntity>): RecyclerView.
         fun bind(pokemon: PokemonEntity) {
             nameTextView.text = pokemon.name
             heightTetView.text = pokemon.height.toString()
+            frontImage.setImageDrawable(null)
             pokemon.sprites?.frontDefault?.let {
                 picasso.load(it).placeholder(R.drawable.ic_collections_black_24dp).into(frontImage)
             }
+            backImage.setImageDrawable(null)
             pokemon.sprites?.backDefault?.let {
                 picasso.load(it).placeholder(R.drawable.ic_collections_black_24dp).into(backImage)
             }

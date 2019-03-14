@@ -11,12 +11,14 @@ import io.reactivex.Flowable
 interface PokemonDao {
 
     @Query("SELECT * FROM pokemon")
-    fun getAll(): Flowable<List<Pokemon>>
+    fun all(): Flowable<List<Pokemon>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(list: List<Pokemon>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(element: Pokemon)
+
     @Query("SELECT * FROM pokemon where name like :query order by name desc")
     fun searchPokemon(query: String): Flowable<List<Pokemon>>
-
 }
