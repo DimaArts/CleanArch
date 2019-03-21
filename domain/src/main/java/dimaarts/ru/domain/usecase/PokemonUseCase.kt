@@ -1,15 +1,16 @@
 package dimaarts.ru.domain.usecase
 
-import dimaarts.ru.data.entity.pokemondetails.PokemonEntity
+import dimaarts.ru.domain.result.PokemonSearchResult
 import io.reactivex.Scheduler
-import io.reactivex.subscribers.DisposableSubscriber
+import io.reactivex.observers.DisposableSingleObserver
 
 abstract class PokemonUseCase constructor(
     executor: Scheduler,
     postExecutor: Scheduler
-): UseCase<PokemonEntity, PokemonUseCase.Query>(executor, postExecutor) {
+): UseCase<PokemonSearchResult, PokemonUseCase.Query>(executor, postExecutor) {
 
-    abstract fun searchPokemon(observer: DisposableSubscriber<PokemonEntity>, query: Query)
+    abstract fun searchPokemon(observer: DisposableSingleObserver<PokemonSearchResult>, query: Query)
+    abstract fun getDetail(observer: DisposableSingleObserver<PokemonSearchResult>, query: Query)
 
-    data class Query(val query: String)
+    data class Query(val query: String? = null, val id: Int? = null)
 }

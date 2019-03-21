@@ -4,7 +4,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.constraintlayout.widget.Group
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import dimaarts.ru.cleanarchitecturesampleapp.R
@@ -14,31 +16,17 @@ import kotlinx.android.synthetic.main.item_pokemon_info.view.*
 import javax.inject.Inject
 
 @FragmentScope
-class PokemonAdapter(private var items: ArrayList<PokemonEntity>): RecyclerView.Adapter<PokemonAdapter.MyViewHolder>() {
+class PokemonAdapter(var items: List<PokemonEntity>): RecyclerView.Adapter<PokemonAdapter.MyViewHolder>() {
     @Inject
     lateinit var picasso: Picasso
 
     @Inject constructor() : this(arrayListOf())
 
+    var onBind: ((PokemonEntity)->Unit)? = null
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val textView = LayoutInflater.from(parent.context).inflate(R.layout.item_pokemon_info, parent, false)
         return MyViewHolder(textView)
-    }
-
-    fun update(newItems: ArrayList<PokemonEntity>) {
-        items = newItems
-        notifyDataSetChanged()
-    }
-
-    fun add(newItem: PokemonEntity) {
-        items.add(newItem)
-        notifyDataSetChanged()
-    }
-
-    fun clear() {
-        val size = items.size
-        items = arrayListOf()
-        notifyItemRangeRemoved(0, size)
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
@@ -50,8 +38,11 @@ class PokemonAdapter(private var items: ArrayList<PokemonEntity>): RecyclerView.
         private val heightTetView: TextView = itemView.heightValueTetView
         private val frontImage: ImageView = itemView.frontImage
         private val backImage: ImageView = itemView.backImage
+        private val detailGroup: Group = itemView.detailGroup
+        private val progressBar: ProgressBar = itemView.progressBar
 
         fun bind(pokemon: PokemonEntity) {
+            onBind?.invoke(pokemon)
             nameTextView.text = pokemon.name
             heightTetView.text = pokemon.height.toString()
             frontImage.setImageDrawable(null)
@@ -61,6 +52,14 @@ class PokemonAdapter(private var items: ArrayList<PokemonEntity>): RecyclerView.
             backImage.setImageDrawable(null)
             pokemon.sprites?.backDefault?.let {
                 picasso.load(it).placeholder(R.drawable.ic_collections_black_24dp).into(backImage)
+            }
+            if(pokemon.detailLoaded) {
+                detailGroup.visibility = View.VISIBLE
+                progressBar.visibility = View.GONE
+            }
+            else {
+                detailGroup.visibility = View.INVISIBLE
+                progressBar.visibility = View.VISIBLE
             }
         }
     }

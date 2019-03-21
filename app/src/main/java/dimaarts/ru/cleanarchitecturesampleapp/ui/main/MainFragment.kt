@@ -10,24 +10,28 @@ import com.arellomobile.mvp.MvpAppCompatFragment
 import com.arellomobile.mvp.presenter.InjectPresenter
 import com.arellomobile.mvp.presenter.ProvidePresenter
 import dagger.android.support.AndroidSupportInjection
-import dimaarts.ru.cleanarchitecturesampleapp.PokeApplication
-import dimaarts.ru.cleanarchitecturesampleapp.R
 import dimaarts.ru.cleanarchitecturesampleapp.presenter.main.MainPresenter
 import dimaarts.ru.cleanarchitecturesampleapp.presenter.main.MainView
 import dimaarts.ru.cleanarchitecturesampleapp.ui.main.adapter.PokemonAdapter
 import dimaarts.ru.data.entity.pokemondetails.PokemonEntity
-import dimaarts.ru.cleanarchitecturesampleapp.extension.defaultSettings
-import kotlinx.android.synthetic.main.fragment_main.view.*
 import javax.inject.Inject
 import javax.inject.Provider
+import androidx.recyclerview.widget.DiffUtil
+import dimaarts.ru.cleanarchitecturesampleapp.R
+import dimaarts.ru.cleanarchitecturesampleapp.extension.defaultSettings
+import kotlinx.android.synthetic.main.fragment_main.view.*
 
 
 class MainFragment: MvpAppCompatFragment(), MainView {
     @Inject
     lateinit var adapter: PokemonAdapter
 
-    override fun addPokemon(pokemon: PokemonEntity) {
-        adapter.add(pokemon)
+    override fun updatePokemons(pokemonList: List<PokemonEntity>, diffResult: DiffUtil.DiffResult?) {
+        adapter.items = pokemonList
+        diffResult?.dispatchUpdatesTo(adapter)
+        if(diffResult == null) {
+            adapter.notifyDataSetChanged()
+        }
     }
 
     override fun showSearchError() {
@@ -35,7 +39,7 @@ class MainFragment: MvpAppCompatFragment(), MainView {
     }
 
     override fun clear() {
-        adapter.clear()
+        updatePokemons(arrayListOf(), null)
     }
 
     @Inject
@@ -57,6 +61,9 @@ class MainFragment: MvpAppCompatFragment(), MainView {
         val searchEditText = view.searchEditText
         view.searchButton.setOnClickListener {
             presenter.searchPokemon(searchEditText.text.toString())
+        }
+        adapter.onBind = {
+            presenter.getDetail(it)
         }
         view.pokeRecyclerView.defaultSettings()
         view.pokeRecyclerView.adapter = adapter

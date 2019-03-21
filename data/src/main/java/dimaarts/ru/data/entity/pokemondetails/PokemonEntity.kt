@@ -4,5 +4,6 @@ data class PokemonEntity (
     val id: Int,
     val name: String? = null,
     val height: Int? = null,
-    val sprites: SpritesEntity? = null
+    val sprites: SpritesEntity? = null,
+    var detailLoaded: Boolean = false
 )

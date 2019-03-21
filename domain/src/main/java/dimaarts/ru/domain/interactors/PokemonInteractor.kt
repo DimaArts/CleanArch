@@ -3,19 +3,19 @@ package dimaarts.ru.domain.interactors
 import dimaarts.ru.data.entity.pokemondetails.PokemonEntity
 import dimaarts.ru.data.net.api.client.ApiClient
 import dimaarts.ru.data.repository.PokemonRepository
+import dimaarts.ru.domain.mapper.SearchResultMapper
+import dimaarts.ru.domain.result.PokemonSearchResult
 import dimaarts.ru.domain.exception.EmptyQueryException
 import dimaarts.ru.domain.exception.PokemonNotFoundException
 import dimaarts.ru.domain.mapper.PokemonMapper
 import dimaarts.ru.domain.usecase.PokemonUseCase
 import io.reactivex.Flowable
-import io.reactivex.Observable
 import io.reactivex.Scheduler
-import io.reactivex.subscribers.DisposableSubscriber
-import java.lang.Exception
+import io.reactivex.Single
+import io.reactivex.observers.DisposableSingleObserver
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
-import javax.inject.Singleton
 
 class PokemonInteractor
 @Inject
@@ -24,25 +24,71 @@ constructor(private val apiClient: ApiClient,
             @Named("scheduler") scheduler: Scheduler,
             @Named("postScheduler") postScheduler: Scheduler
 ) : PokemonUseCase(scheduler, postScheduler) {
+    var lastSearchResult = listOf<PokemonEntity>()
+
+    override fun getDetail(observer: DisposableSingleObserver<PokemonSearchResult>, query: Query) {
+        execute(observer, query) {
+            when {
+                query.id == null -> Single.error(EmptyQueryException())
+                apiClient.hasInternetConnection() -> apiClient.getPokemonDetail(query.id).doOnSuccess { x ->
+                    x.detailLoaded = true
+                    repository.insert(x)
+                }
+                .toFlowable()
+                .flatMap { x -> Flowable.fromIterable(lastSearchResult).map { y -> if(y.id == x.id) x else y } }
+                .toList()
+                .map{SearchResultMapper.map(it, lastSearchResult)}
+                .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                .timeout(
+                    DATA_REQUEST_TIMEOUT,
+                    TimeUnit.MILLISECONDS
+                )
+
+                else -> repository.getPokemon(query.id)
+                    .toFlowable()
+                    .flatMap { x -> Flowable.fromIterable(lastSearchResult).map { y -> if(y.id == x.id) x else y } }
+                    .toList()
+                    .map{SearchResultMapper.map(it, lastSearchResult)}
+                    .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                    .timeout(
+                        DATA_REQUEST_TIMEOUT,
+                        TimeUnit.MILLISECONDS
+                    )
+            }
+
+        }
+    }
 
     override fun searchPokemon(
-        observer: DisposableSubscriber<PokemonEntity>,
+        observer: DisposableSingleObserver<PokemonSearchResult>,
         query: Query
     ) {
         execute(observer, query) {
             when {
-                query.query.isEmpty() -> Flowable.error(EmptyQueryException())
+                query.query==null || query.query.isEmpty() -> Single.error(EmptyQueryException())
                 apiClient.hasInternetConnection() -> apiClient.getPokemonList()
                     .flatMap { x-> if(x.isEmpty()) throw PokemonNotFoundException() else Flowable.fromIterable(x) }
                     .filter{x -> x.name.contains(query.query.toLowerCase())}
                     .map(PokemonMapper::map)
-                    .timeout(1500, TimeUnit.MILLISECONDS)
-                    .flatMap { x -> apiClient.getPokemonDetail(x.id).timeout(1500, TimeUnit.MILLISECONDS).toFlowable() }
-                    .doOnNext {x -> repository.insert(x) }
+                    .toList()
+                    .doOnSuccess {x ->
+                        repository.insertAll(x)
+                    }
+                    .map{SearchResultMapper.map(it, lastSearchResult)}
+                    .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                    .timeout(DATA_REQUEST_TIMEOUT, TimeUnit.MILLISECONDS)
                 else -> {
-                    repository.searchPokemon(query.query.toLowerCase()).timeout(1500, TimeUnit.MILLISECONDS).flatMap { x -> Flowable.fromIterable(x) }
+                    repository.searchPokemon(query.query.toLowerCase())
+                        .single(null)
+                        .map{SearchResultMapper.map(it, lastSearchResult)}
+                        .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                        .timeout(DATA_REQUEST_TIMEOUT, TimeUnit.MILLISECONDS)
                 }
             }
         }
+    }
+
+    companion object {
+        const val DATA_REQUEST_TIMEOUT = 1500L
     }
 }

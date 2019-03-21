@@ -9,6 +9,7 @@ import dimaarts.ru.data.repository.dao.PokemonDao
 import dimaarts.ru.data.repository.database.Pokemon
 import dimaarts.ru.data.repository.mapper.PokemonDatabaseMapper
 import io.reactivex.Flowable
+import io.reactivex.Single
 
 @Database(entities = [Pokemon::class], version = 1)
 abstract class PokemonRepository: RoomDatabase() {
@@ -19,8 +20,16 @@ abstract class PokemonRepository: RoomDatabase() {
         pokemonDao().insert(PokemonDatabaseMapper.map(element))
     }
 
+    fun insertAll(list: List<PokemonEntity>) {
+        pokemonDao().insertAll(list.map(PokemonDatabaseMapper::map))
+    }
+
     fun searchPokemon(query: String): Flowable<List<PokemonEntity>> {
         return pokemonDao().searchPokemon("%$query%").map (PokemonDatabaseMapper::mapFrom)
+    }
+
+    fun getPokemon(id: Int): Single<PokemonEntity> {
+        return pokemonDao().getPokemon(id).map (PokemonDatabaseMapper::mapFrom)
     }
 
     val all: Flowable<List<PokemonEntity>> get() {
