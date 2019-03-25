@@ -6,11 +6,11 @@ import dimaarts.ru.data.repository.database.Pokemon
 
 object PokemonDatabaseMapper {
     fun mapFrom(p: Pokemon): PokemonEntity {
-        return PokemonEntity(p.id, p.name, p.height, SpritesEntity(p.backDefault, p.backFemale, p.backShiny, p.backShinyFemale, p.frontDefault, p.frontFemale, p.frontShiny, p.frontShinyFemale), loadingError = p.loadingError)
+        return PokemonEntity(p.id, p.name, p.height, SpritesEntity(p.backDefault, p.backFemale, p.backShiny, p.backShinyFemale, p.frontDefault, p.frontFemale, p.frontShiny, p.frontShinyFemale), p.haveDetailInfo, p.loadingError)
     }
 
     fun map(pe: PokemonEntity): Pokemon {
-        return Pokemon(pe.id, pe.name, pe.height, pe.sprites?.backDefault, pe.sprites?.backFemale, pe.sprites?.backShiny, pe.sprites?.backShinyFemale, pe.sprites?.frontDefault, pe.sprites?.frontFemale, pe.sprites?.frontShiny, pe.sprites?.frontShinyFemale, pe.loadingError)
+        return Pokemon(pe.id, pe.name, pe.height, pe.sprites?.backDefault, pe.sprites?.backFemale, pe.sprites?.backShiny, pe.sprites?.backShinyFemale, pe.sprites?.frontDefault, pe.sprites?.frontFemale, pe.sprites?.frontShiny, pe.sprites?.frontShinyFemale, pe.loadingError, pe.detailLoaded)
     }
 
     fun mapFrom(pl: List<Pokemon>): List<PokemonEntity> {

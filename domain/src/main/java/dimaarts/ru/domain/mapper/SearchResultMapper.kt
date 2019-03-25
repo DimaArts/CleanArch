@@ -11,6 +11,6 @@ object SearchResultMapper {
         searchResult.list = pel
         val pokemonDiffUtilCallback = PokemonDiffUtilCallback(oldList, pel)
         searchResult.diffResult = DiffUtil.calculateDiff(pokemonDiffUtilCallback)
-        return  searchResult
+        return searchResult
     }
 }

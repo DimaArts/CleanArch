@@ -21,7 +21,7 @@ interface PokemonDao {
     fun insert(element: Pokemon)
 
     @Query("SELECT * FROM pokemon where name like :query order by name desc")
-    fun searchPokemon(query: String): Flowable<List<Pokemon>>
+    fun searchPokemon(query: String): Single<List<Pokemon>>
 
     @Query("SELECT * FROM pokemon where id=:id")
     fun getPokemon(id: Int): Single<Pokemon>

@@ -26,7 +26,7 @@ abstract class PokemonRepository: RoomDatabase() {
         pokemonDao().insertAll(list.map(PokemonDatabaseMapper::map))
     }
 
-    fun searchPokemon(query: String): Flowable<List<PokemonEntity>> {
+    fun searchPokemon(query: String): Single<List<PokemonEntity>> {
         return pokemonDao().searchPokemon("%$query%").map (PokemonDatabaseMapper::mapFrom)
     }
 
@@ -48,6 +48,7 @@ abstract class PokemonRepository: RoomDatabase() {
         private val MIGRATION_1_2: Migration = object: Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE pokemon ADD COLUMN loadingError TEXT")
+                database.execSQL("ALTER TABLE pokemon ADD COLUMN haveDetailInfo INTEGER DEFAULT 0 NOT NULL")
             }
         }
     }

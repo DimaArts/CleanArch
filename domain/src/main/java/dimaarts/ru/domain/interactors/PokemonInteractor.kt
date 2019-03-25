@@ -37,6 +37,11 @@ constructor(private val apiClient: ApiClient,
                         repository.insert(x)
                     }
                         .toFlowable()
+                        .sorted { o1, o2 ->
+                            val name1 = o1.name
+                            val name2 = o2.name
+                            if(name1 == null || name2 == null) -1
+                            else name1.compareTo(name2)}
                         .flatMap { x -> Flowable.fromIterable(lastSearchResult).map { y ->
                             y.loadingError = null
                             if(y.id == x.id) x else y } }
@@ -49,11 +54,13 @@ constructor(private val apiClient: ApiClient,
                         )
                         .onErrorReturn {e ->
                             Flowable.fromIterable(lastSearchResult)
-                                .map { x -> if(query.id == x.id) {
-                                    x.copy(loadingError = "Content loading error")
+                                .map {
+                                    x -> if(query.id == x.id) {
+                                        x.copy(loadingError = "Content loading error")
+                                    }
+                                    else
+                                     x
                                 }
-                                else
-                                 x }
                                 .toList()
                                 .map{SearchResultMapper.map(it, lastSearchResult)}
                                 .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
@@ -64,6 +71,13 @@ constructor(private val apiClient: ApiClient,
                 else -> repository.getPokemon(query.id)
                     .toFlowable()
                     .flatMap { x -> Flowable.fromIterable(lastSearchResult).map { y -> if(y.id == x.id) x else y } }
+                    .map { x ->
+                        if (!x.detailLoaded && query.id == x.id) {
+                            x.copy(loadingError = "Content loading error")
+                        }
+                        else
+                            x
+                    }
                     .toList()
                     .map{SearchResultMapper.map(it, lastSearchResult)}
                     .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
@@ -96,7 +110,6 @@ constructor(private val apiClient: ApiClient,
                     .timeout(DATA_REQUEST_TIMEOUT, TimeUnit.MILLISECONDS)
                 else -> {
                     repository.searchPokemon(query.query.toLowerCase())
-                        .single(null)
                         .map{SearchResultMapper.map(it, lastSearchResult)}
                         .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
                         .timeout(DATA_REQUEST_TIMEOUT, TimeUnit.MILLISECONDS)

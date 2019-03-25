@@ -19,5 +19,6 @@ data class Pokemon (
     val frontFemale: String?,
     val frontShiny: String?,
     val frontShinyFemale: String?,
-    val loadingError: String?
+    val loadingError: String?,
+    val haveDetailInfo: Boolean=false
 )
