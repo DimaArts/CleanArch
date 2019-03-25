@@ -5,5 +5,6 @@ data class PokemonEntity (
     val name: String? = null,
     val height: Int? = null,
     val sprites: SpritesEntity? = null,
-    var detailLoaded: Boolean = false
+    var detailLoaded: Boolean = false,
+    var loadingError: String? = null
 )

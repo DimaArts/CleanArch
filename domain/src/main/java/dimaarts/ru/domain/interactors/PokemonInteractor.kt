@@ -12,6 +12,7 @@ import dimaarts.ru.domain.usecase.PokemonUseCase
 import io.reactivex.Flowable
 import io.reactivex.Scheduler
 import io.reactivex.Single
+import io.reactivex.functions.BiFunction
 import io.reactivex.observers.DisposableSingleObserver
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -30,19 +31,35 @@ constructor(private val apiClient: ApiClient,
         execute(observer, query) {
             when {
                 query.id == null -> Single.error(EmptyQueryException())
-                apiClient.hasInternetConnection() -> apiClient.getPokemonDetail(query.id).doOnSuccess { x ->
-                    x.detailLoaded = true
-                    repository.insert(x)
+                apiClient.hasInternetConnection() -> {
+                    apiClient.getPokemonDetail(query.id).doOnSuccess { x ->
+                        x.detailLoaded = true
+                        repository.insert(x)
+                    }
+                        .toFlowable()
+                        .flatMap { x -> Flowable.fromIterable(lastSearchResult).map { y ->
+                            y.loadingError = null
+                            if(y.id == x.id) x else y } }
+                        .toList()
+                        .map{SearchResultMapper.map(it, lastSearchResult)}
+                        .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                        .timeout(
+                            DATA_REQUEST_TIMEOUT,
+                            TimeUnit.MILLISECONDS
+                        )
+                        .onErrorReturn {e ->
+                            Flowable.fromIterable(lastSearchResult)
+                                .map { x -> if(query.id == x.id) {
+                                    x.copy(loadingError = "Content loading error")
+                                }
+                                else
+                                 x }
+                                .toList()
+                                .map{SearchResultMapper.map(it, lastSearchResult)}
+                                .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                                .blockingGet()
+                        }
                 }
-                .toFlowable()
-                .flatMap { x -> Flowable.fromIterable(lastSearchResult).map { y -> if(y.id == x.id) x else y } }
-                .toList()
-                .map{SearchResultMapper.map(it, lastSearchResult)}
-                .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
-                .timeout(
-                    DATA_REQUEST_TIMEOUT,
-                    TimeUnit.MILLISECONDS
-                )
 
                 else -> repository.getPokemon(query.id)
                     .toFlowable()
@@ -89,6 +106,6 @@ constructor(private val apiClient: ApiClient,
     }
 
     companion object {
-        const val DATA_REQUEST_TIMEOUT = 1500L
+        const val DATA_REQUEST_TIMEOUT = 2000L
     }
 }

@@ -18,5 +18,6 @@ data class Pokemon (
     val frontDefault: String?,
     val frontFemale: String?,
     val frontShiny: String?,
-    val frontShinyFemale: String?
+    val frontShinyFemale: String?,
+    val loadingError: String?
 )

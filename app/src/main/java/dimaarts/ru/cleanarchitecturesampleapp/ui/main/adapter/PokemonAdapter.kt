@@ -35,16 +35,17 @@ class PokemonAdapter(var items: List<PokemonEntity>): RecyclerView.Adapter<Pokem
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val nameTextView: TextView = itemView.nameValueTextView
-        private val heightTetView: TextView = itemView.heightValueTetView
+        private val heightTextView: TextView = itemView.heightValueTetView
         private val frontImage: ImageView = itemView.frontImage
         private val backImage: ImageView = itemView.backImage
         private val detailGroup: Group = itemView.detailGroup
         private val progressBar: ProgressBar = itemView.progressBar
+        private val loadingError: TextView = itemView.loadingError
 
         fun bind(pokemon: PokemonEntity) {
             onBind?.invoke(pokemon)
             nameTextView.text = pokemon.name
-            heightTetView.text = pokemon.height.toString()
+            heightTextView.text = pokemon.height.toString()
             frontImage.setImageDrawable(null)
             pokemon.sprites?.frontDefault?.let {
                 picasso.load(it).placeholder(R.drawable.ic_collections_black_24dp).into(frontImage)
@@ -53,11 +54,19 @@ class PokemonAdapter(var items: List<PokemonEntity>): RecyclerView.Adapter<Pokem
             pokemon.sprites?.backDefault?.let {
                 picasso.load(it).placeholder(R.drawable.ic_collections_black_24dp).into(backImage)
             }
-            if(pokemon.detailLoaded) {
+            if(pokemon.loadingError!=null) {
+                loadingError.text = pokemon.loadingError
+                loadingError.visibility = View.VISIBLE
+                detailGroup.visibility = View.INVISIBLE
+                progressBar.visibility = View.GONE
+            }
+            else if(pokemon.detailLoaded) {
+                loadingError.visibility = View.GONE
                 detailGroup.visibility = View.VISIBLE
                 progressBar.visibility = View.GONE
             }
             else {
+                loadingError.visibility = View.GONE
                 detailGroup.visibility = View.INVISIBLE
                 progressBar.visibility = View.VISIBLE
             }

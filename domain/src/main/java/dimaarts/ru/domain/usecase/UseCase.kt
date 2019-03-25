@@ -22,6 +22,30 @@ abstract class UseCase<T, Params> constructor(
         }
     }
 
+    protected fun execute(observer: DisposableSubscriber<T>, flowable: ()->Flowable<T>) {
+        newDisposables()
+        val observable = flowable()
+            .subscribeOn(executor)
+            .observeOn(postExecutor)
+        addDisposable(observable.subscribeWith(observer))
+    }
+
+    protected fun execute(observer: DisposableObserver<T>, observable: ()->Observable<T>) {
+        newDisposables()
+        val obs = observable()
+            .subscribeOn(executor)
+            .observeOn(postExecutor)
+        addDisposable(obs.subscribeWith(observer))
+    }
+
+    protected fun execute(observer: DisposableSingleObserver<T>, single: ()-> Single<T>) {
+        newDisposables()
+        val obs = single()
+            .subscribeOn(executor)
+            .observeOn(postExecutor)
+        addDisposable(obs.subscribeWith(observer))
+    }
+
 
     protected fun execute(observer: DisposableSubscriber<T>, params: Params, flowable: (Params)->Flowable<T>) {
         newDisposables()
