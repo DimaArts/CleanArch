@@ -14,6 +14,7 @@ import io.reactivex.Scheduler
 import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import io.reactivex.observers.DisposableSingleObserver
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
@@ -46,8 +47,8 @@ constructor(private val apiClient: ApiClient,
                             y.loadingError = null
                             if(y.id == x.id) x else y } }
                         .toList()
-                        .map{SearchResultMapper.map(it, lastSearchResult)}
-                        .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                        .map{SearchResultMapper.map(it)}
+                        .doOnSuccess { x -> lastSearchResult=x.newList ?: arrayListOf() }
                         .timeout(
                             DATA_REQUEST_TIMEOUT,
                             TimeUnit.MILLISECONDS
@@ -62,8 +63,8 @@ constructor(private val apiClient: ApiClient,
                                      x
                                 }
                                 .toList()
-                                .map{SearchResultMapper.map(it, lastSearchResult)}
-                                .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                                .map{SearchResultMapper.map(it)}
+                                .doOnSuccess { x -> lastSearchResult=x.newList ?: arrayListOf() }
                                 .blockingGet()
                         }
                 }
@@ -79,8 +80,8 @@ constructor(private val apiClient: ApiClient,
                             x
                     }
                     .toList()
-                    .map{SearchResultMapper.map(it, lastSearchResult)}
-                    .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                    .map{SearchResultMapper.map(it)}
+                    .doOnSuccess { x -> lastSearchResult=x.newList ?: arrayListOf() }
                     .timeout(
                         DATA_REQUEST_TIMEOUT,
                         TimeUnit.MILLISECONDS
@@ -99,19 +100,19 @@ constructor(private val apiClient: ApiClient,
                 query.query==null || query.query.isEmpty() -> Single.error(EmptyQueryException())
                 apiClient.hasInternetConnection() -> apiClient.getPokemonList()
                     .flatMap { x-> if(x.isEmpty()) throw PokemonNotFoundException() else Flowable.fromIterable(x) }
-                    .filter{x -> x.name.contains(query.query.toLowerCase())}
+                    .filter{x -> x.name.contains(query.query.toLowerCase(Locale.getDefault()))}
                     .map(PokemonMapper::map)
                     .toList()
                     .doOnSuccess {x ->
                         repository.insertAll(x)
                     }
-                    .map{SearchResultMapper.map(it, lastSearchResult)}
-                    .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                    .map{SearchResultMapper.map(it)}
+                    .doOnSuccess { x -> lastSearchResult=x.newList ?: arrayListOf() }
                     .timeout(DATA_REQUEST_TIMEOUT, TimeUnit.MILLISECONDS)
                 else -> {
-                    repository.searchPokemon(query.query.toLowerCase())
-                        .map{SearchResultMapper.map(it, lastSearchResult)}
-                        .doOnSuccess { x -> lastSearchResult=x.list ?: arrayListOf() }
+                    repository.searchPokemon(query.query.toLowerCase(Locale.getDefault()))
+                        .map{SearchResultMapper.map(it)}
+                        .doOnSuccess { x -> lastSearchResult=x.newList ?: arrayListOf() }
                         .timeout(DATA_REQUEST_TIMEOUT, TimeUnit.MILLISECONDS)
                 }
             }

@@ -7,20 +7,28 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.constraintlayout.widget.Group
+import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import dimaarts.ru.cleanarchitecturesampleapp.R
 import dimaarts.ru.cleanarchitecturesampleapp.di.scope.FragmentScope
 import dimaarts.ru.data.entity.pokemondetails.PokemonEntity
+import dimaarts.ru.domain.diffutil.PokemonDiffUtilCallback
 import kotlinx.android.synthetic.main.item_pokemon_info.view.*
 import javax.inject.Inject
 
 @FragmentScope
-class PokemonAdapter(var items: List<PokemonEntity>): RecyclerView.Adapter<PokemonAdapter.MyViewHolder>() {
+class PokemonAdapter: RecyclerView.Adapter<PokemonAdapter.MyViewHolder> {
     @Inject
     lateinit var picasso: Picasso
 
-    @Inject constructor() : this(arrayListOf())
+    private val mDiffer: AsyncListDiffer<PokemonEntity> = AsyncListDiffer(this, PokemonDiffUtilCallback())
+
+    fun submitList(list: List<PokemonEntity>?) {
+        mDiffer.submitList(list)
+    }
+
+    @Inject constructor() : super()
 
     var onBind: ((PokemonEntity)->Unit)? = null
 
@@ -30,7 +38,7 @@ class PokemonAdapter(var items: List<PokemonEntity>): RecyclerView.Adapter<Pokem
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.bind(items[position])
+        holder.bind(mDiffer.currentList[position])
     }
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -74,5 +82,5 @@ class PokemonAdapter(var items: List<PokemonEntity>): RecyclerView.Adapter<Pokem
     }
 
 
-    override fun getItemCount() = items.size
+    override fun getItemCount() = mDiffer.currentList.size
 }

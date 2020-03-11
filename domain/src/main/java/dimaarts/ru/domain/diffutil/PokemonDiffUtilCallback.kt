@@ -4,22 +4,13 @@ import androidx.recyclerview.widget.DiffUtil
 import dimaarts.ru.data.entity.pokemondetails.PokemonEntity
 
 
-class PokemonDiffUtilCallback(private val oldList: List<PokemonEntity>, private val newList: List<PokemonEntity>): DiffUtil.Callback() {
-
-    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        val oldPokemon = oldList[oldItemPosition]
-        val newPokemon = newList[newItemPosition]
-        return oldPokemon.id == newPokemon.id
+class PokemonDiffUtilCallback: DiffUtil.ItemCallback<PokemonEntity>() {
+    override fun areItemsTheSame(oldItem: PokemonEntity, newItem: PokemonEntity): Boolean {
+        return oldItem.id == newItem.id
     }
 
-    override fun getOldListSize(): Int = oldList.size
-
-    override fun getNewListSize(): Int = newList.size
-
-    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        val oldPokemon = oldList[oldItemPosition]
-        val newPokemon = newList[newItemPosition]
-        return oldPokemon == newPokemon
+    override fun areContentsTheSame(oldItem: PokemonEntity, newItem: PokemonEntity): Boolean {
+        return oldItem == newItem
     }
 
 }

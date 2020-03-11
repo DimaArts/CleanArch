@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.recyclerview.widget.AsyncListDiffer
 import com.arellomobile.mvp.MvpAppCompatFragment
 import com.arellomobile.mvp.presenter.InjectPresenter
 import com.arellomobile.mvp.presenter.ProvidePresenter
@@ -26,12 +27,8 @@ class MainFragment: MvpAppCompatFragment(), MainView {
     @Inject
     lateinit var adapter: PokemonAdapter
 
-    override fun updatePokemons(pokemonList: List<PokemonEntity>, diffResult: DiffUtil.DiffResult?) {
-        adapter.items = pokemonList
-        diffResult?.dispatchUpdatesTo(adapter)
-        if(diffResult == null) {
-            adapter.notifyDataSetChanged()
-        }
+    override fun updatePokemons(newList: List<PokemonEntity>?) {
+        adapter.submitList(newList)
     }
 
     override fun showSearchError() {
@@ -39,7 +36,7 @@ class MainFragment: MvpAppCompatFragment(), MainView {
     }
 
     override fun clear() {
-        updatePokemons(arrayListOf(), null)
+        updatePokemons(arrayListOf())
     }
 
     @Inject

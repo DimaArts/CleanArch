@@ -34,10 +34,7 @@ class MainPresenter @Inject constructor() : MvpPresenter<MainView>() {
 
     inner class Subscriber: DisposableSingleObserver<PokemonSearchResult>() {
         override fun onSuccess(result: PokemonSearchResult) {
-            val all = result.list
-            if(all!=null) {
-                viewState?.updatePokemons(all, result.diffResult)
-            }
+            viewState?.updatePokemons(result.newList)
         }
 
         override fun onError(e: Throwable) {
