@@ -18,7 +18,7 @@ import kotlinx.android.synthetic.main.item_pokemon_info.view.*
 import javax.inject.Inject
 
 @FragmentScope
-class PokemonAdapter: RecyclerView.Adapter<PokemonAdapter.MyViewHolder> {
+class PokemonAdapter @Inject constructor() : RecyclerView.Adapter<PokemonAdapter.MyViewHolder>() {
     @Inject
     lateinit var picasso: Picasso
 
@@ -27,8 +27,6 @@ class PokemonAdapter: RecyclerView.Adapter<PokemonAdapter.MyViewHolder> {
     fun submitList(list: List<PokemonEntity>?) {
         mDiffer.submitList(list)
     }
-
-    @Inject constructor() : super()
 
     var onBind: ((PokemonEntity)->Unit)? = null
 
